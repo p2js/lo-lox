@@ -76,16 +76,20 @@ function scanTokens(source = "") {
                     // comment, goes until the end of the line
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else if (match('*')) {
-                    // block comment, ignore until matching */ is found
+                    // block comment, ignore until matching */ is found (with nesting)
                     let startingLine = line;
-                    while (!(peek() == '*' && peekNext() == '/')) {
+                    let nestLevel = 1;
+                    while (nestLevel != 0) {
                         if (isAtEnd()) {
                             error(startingLine, "Unclosed block comment");
                             break;
                         }
+                        if (peek() == '/' && peekNext() == '*') nestLevel++;
+                        if (peek() == '*' && peekNext() == '/') nestLevel--;
                         if (peek() == '\n') line++;
                         advance();
                     }
+
                     //consume the closing */
                     advance();
                     advance();
