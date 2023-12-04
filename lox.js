@@ -5,7 +5,7 @@ import readline from 'readline';
 
 let args = process.argv.slice(2);
 
-console.log(process.argv);
+let hadError = false;
 
 if (args.length > 1) {
     console.log(`Usage: node lox [script]`);
@@ -14,10 +14,8 @@ if (args.length > 1) {
 if (args.length == 1) {
     runFile(args[0]);
 } else {
-    runPrompt();
+    repl();
 }
-
-let hadError = false;
 
 function runFile(path) {
     let source;
@@ -33,7 +31,7 @@ function runFile(path) {
     if (hadError) process.exit(65);
 }
 
-async function runPrompt() {
+async function repl() {
     let rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     process.stdout.write("Welcome to lox 1.0.0.\n\n> ");
 
@@ -46,11 +44,12 @@ async function runPrompt() {
             case "/exit":
             case "/quit":
                 process.exit(0);
+                break;
             default:
                 run(line);
+                console.log(hadError);
                 break;
         }
-        console.log(hadError);
         hadError = false;
         process.stdout.write("> ");
     }
