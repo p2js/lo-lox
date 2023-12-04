@@ -7,7 +7,7 @@ const reservedWords = ["and", "class", "else", "false", "for", "fun", "if", "nil
 const keywords = new Map();
 reservedWords.forEach((w) => { keywords.set(w, TokenType[w.toUpperCase()]); });
 
-function scanTokens(source="") {
+function scanTokens(source = "") {
     let tokenList = [];
 
     // keep track of where we are in the source code
@@ -50,7 +50,7 @@ function scanTokens(source="") {
     let isAlphaNumeric = c => isDigit(c) || isLetter(c);
 
     //function to scan a token
-    function scanToken() { 
+    function scanToken() {
         let char = advance();
         switch (char) {
             // single-char tokens
@@ -62,6 +62,7 @@ function scanTokens(source="") {
             case '.': addToken(TokenType.DOT); break;
             case '-': addToken(TokenType.MINUS); break;
             case '+': addToken(TokenType.PLUS); break;
+            case '*': addToken(TokenType.STAR); break;
             case ';': addToken(TokenType.SEMICOLON); break;
             case ':': addToken(TokenType.COLON); break;
             // single-or-double-char tokens
@@ -74,6 +75,20 @@ function scanTokens(source="") {
                 if (match('/')) {
                     // comment, goes until the end of the line
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    // block comment, ignore until matching */ is found
+                    let startingLine = line;
+                    while (!(peek() == '*' && peekNext() == '/')) {
+                        if (isAtEnd()) {
+                            error(startingLine, "Unclosed block comment");
+                            break;
+                        }
+                        if (peek() == '\n') line++;
+                        advance();
+                    }
+                    //consume the closing */
+                    advance();
+                    advance();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -98,7 +113,7 @@ function scanTokens(source="") {
                     identifier();
                 } else {
                     error(line, 'Unexpected character "' + char + '".');
-                    break;                   
+                    break;
                 }
         }
     };
@@ -108,7 +123,7 @@ function scanTokens(source="") {
         start = current;
         scanToken();
     }
-    
+
     tokenList.push(new Token(TokenType.EOF, "", null, line));
     return tokenList;
 
