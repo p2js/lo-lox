@@ -1,13 +1,13 @@
-import Token from "./Token.js";
-import TokenType from "./TokenType.js";
-import { error } from "./lox.js";
+import Token from './Token.js';
+import TokenType from './TokenType.js';
+import { error } from './lox.js';
 
 //map for reserved words
-const reservedWords = ["and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print", "return", "super", "this", "true", "var", "while"];
+const reservedWords = ['and', 'class', 'else', 'false', 'for', 'fun', 'if', 'nil', 'or', 'print', 'return', 'super', 'this', 'true', 'var', 'while'];
 const keywords = new Map();
 reservedWords.forEach((w) => { keywords.set(w, TokenType[w.toUpperCase()]); });
 
-function scanTokens(source = "") {
+function scanTokens(source = '') {
     let tokenList = [];
 
     // keep track of where we are in the source code
@@ -81,7 +81,7 @@ function scanTokens(source = "") {
                     let nestLevel = 1;
                     while (nestLevel != 0) {
                         if (isAtEnd()) {
-                            error(startingLine, "Unclosed block comment");
+                            error(startingLine, '', 'Unclosed block comment');
                             break;
                         }
                         if (peek() == '/' && peekNext() == '*') nestLevel++;
@@ -116,7 +116,7 @@ function scanTokens(source = "") {
                 } else if (isLetter(char)) {
                     identifier();
                 } else {
-                    error(line, 'Unexpected character "' + char + '".');
+                    error(line, '', 'Unexpected character "' + char + '".');
                     break;
                 }
         }
@@ -128,7 +128,7 @@ function scanTokens(source = "") {
         scanToken();
     }
 
-    tokenList.push(new Token(TokenType.EOF, "", null, line));
+    tokenList.push(new Token(TokenType.EOF, '', null, line));
     return tokenList;
 
     // string literal handling
@@ -139,7 +139,7 @@ function scanTokens(source = "") {
         }
 
         if (isAtEnd()) { // EOF reached, string was unterminated
-            error(line, 'Unterminated string');
+            error(line, '', 'Unterminated string');
             return;
         }
         //consume the closing "

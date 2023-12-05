@@ -1,7 +1,11 @@
 import scanTokens from './scanner.js';
+import parse from './parser.js';
+
+import printAST from './ASTprinter.js';
 
 import fs from 'fs';
 import readline from 'readline';
+
 
 let args = process.argv.slice(2);
 
@@ -58,9 +62,13 @@ async function repl() {
 function run(source) {
     let tokens = scanTokens(source);
 
+    console.log('====SCANNER OUTPUT====');
     for (const token of tokens) {
         console.log(token);
     }
+    console.log('====PARSER OUTPUT====');
+    let expression = parse(tokens);
+    console.log(printAST(expression));
 }
 
 function report(line, where, message) {
@@ -68,6 +76,6 @@ function report(line, where, message) {
     hadError = true;
 }
 
-export function error(line, message) {
-    report(line, "", message);
+export function error(line, where, message) {
+    report(line, where, message);
 }
