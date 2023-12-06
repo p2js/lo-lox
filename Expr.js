@@ -1,3 +1,15 @@
+export class Ternary {
+    constructor(left, middle, right) {
+        this.left = left;
+        this.middle = middle;
+        this.right = right;
+    }
+
+    accept(visitor) {
+        return visitor.visitTernaryExpr(this);
+    }
+}
+
 export class Binary {
     constructor(left, operator, right) {
         this.left = left;

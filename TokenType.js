@@ -11,8 +11,10 @@ let tokenList = [
     "MINUS",
     "PLUS",
     "SEMICOLON",
+    "COLON",
     "SLASH",
     "STAR",
+    "QMARK",
     //single-or-double-character tokens
     "BANG",
     "BANG_EQUAL",

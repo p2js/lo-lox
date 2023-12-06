@@ -5,7 +5,7 @@ import { error } from "./lox.js";
 function parseError(token, message) {
     let where = token.type == TokenType.EOF ? ' at end' : ` at '${token.lexeme}'`;
     error(token.line, where, message);
-    return new Error();
+    throw new Error();
 }
 
 export default function parse(tokens) {
@@ -39,7 +39,7 @@ export default function parse(tokens) {
     //consume token if given type, else error
     let expect = (type, message) => check(type) ? advance() : parseError(peek(), message);
     //syncronise on parse error
-    let syncronise = _ => {
+    let synchronise = _ => {
         advance();
         while (!isAtEnd()) {
             if (previous().type = TokenType.SEMICOLON) return;
@@ -62,7 +62,21 @@ export default function parse(tokens) {
     //GRAMMAR RULE IMPLEMENTATIONS
 
     function expression() {
-        return equality();
+        return ternary();
+    }
+
+    function ternary() {
+        let left = equality();
+
+        if (match(TokenType.QMARK)) {
+            let middle = equality();
+            expect(TokenType.COLON, "Unterminated ternary expression.");
+            let right = expression();
+
+            left = new expr.Ternary(left, middle, right);
+        }
+
+        return left;
     }
 
     function equality() {
@@ -139,7 +153,8 @@ export default function parse(tokens) {
         }
 
         //unexpected token
-        parseError(peek(), "Unexpected token.");
+        let token = peek();
+        throw parseError(token, token.type == TokenType.EOF ? 'Expected token.' : 'Unexpected token.');
     }
 
     //PARSE BODY

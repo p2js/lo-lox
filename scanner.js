@@ -65,6 +65,7 @@ function scanTokens(source = '') {
             case '*': addToken(TokenType.STAR); break;
             case ';': addToken(TokenType.SEMICOLON); break;
             case ':': addToken(TokenType.COLON); break;
+            case '?': addToken(TokenType.QMARK); break;
             // single-or-double-char tokens
             case '!': addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
             case '=': addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
@@ -78,14 +79,14 @@ function scanTokens(source = '') {
                 } else if (match('*')) {
                     // block comment, ignore until matching */ is found (with nesting)
                     let startingLine = line;
-                    let nestLevel = 1;
-                    while (nestLevel != 0) {
+                    let depth = 1;
+                    while (depth != 0) {
                         if (isAtEnd()) {
                             error(startingLine, '', 'Unclosed block comment');
                             break;
                         }
-                        if (peek() == '/' && peekNext() == '*') nestLevel++;
-                        if (peek() == '*' && peekNext() == '/') nestLevel--;
+                        if (peek() == '/' && peekNext() == '*') depth++;
+                        if (peek() == '*' && peekNext() == '/') depth--;
                         if (peek() == '\n') line++;
                         advance();
                     }

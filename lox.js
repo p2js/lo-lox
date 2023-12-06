@@ -66,6 +66,8 @@ function run(source) {
     }
     console.log('====PARSER OUTPUT====');
     let expression = parse(tokens);
+
+    if (hadError) return;
     console.log(expression);
 }
 

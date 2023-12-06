@@ -3,6 +3,7 @@ let parenthesize = (name, ...exprs) => {
 };
 
 const visitor = {
+    visitTernaryExpr: (expr) => parenthesize('?:', expr.left, expr.middle, expr.right),
     visitBinaryExpr: (expr) => parenthesize(expr.operator.lexeme, expr.left, expr.right),
     visitGroupingExpr: (expr) => parenthesize('group', expr.expression),
     visitLiteralExpr: (expr) => expr.value == null ? "nil" : expr.value.toString(),
