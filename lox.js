@@ -1,5 +1,6 @@
 import scanTokens from './scanner.js';
 import parse from './parser.js';
+import interpret from './interpreter.js';
 
 import fs from 'fs';
 import readline from 'readline';
@@ -8,6 +9,7 @@ import readline from 'readline';
 let args = process.argv.slice(2);
 
 let hadError = false;
+let hadRuntimeError = false;
 
 if (args.length > 1) {
     console.log(`Usage: node lox [script]`);
@@ -31,6 +33,7 @@ function runFile(path) {
 
     // exit with proper non-zero code if errored
     if (hadError) process.exit(65);
+    if (hadRuntimeError) process.exit(70);
 }
 
 async function repl() {
@@ -49,33 +52,40 @@ async function repl() {
                 break;
             default:
                 run(line);
-                console.log(hadError);
                 break;
         }
         hadError = false;
+        hadRuntimeError = false;
         process.stdout.write("> ");
     }
 }
 
 function run(source) {
-    let tokens = scanTokens(source);
-
     console.log('====SCANNER OUTPUT====');
+    let tokens = scanTokens(source);
     for (const token of tokens) {
         console.log(token.toString());
     }
     console.log('====PARSER OUTPUT====');
     let expression = parse(tokens);
-
     if (hadError) return;
     console.log(expression);
+    console.log('====INTERPRETER OUTPUT====');
+    let value = interpret(expression);
+    if (hadRuntimeError) return;
+    console.log(value);
 }
 
 function report(line, where, message) {
     console.log(`[Line ${line}] Error${where}: ${message}`);
-    hadError = true;
 }
 
 export function error(line, where, message) {
+    hadError = true;
+    report(line, where, message);
+}
+
+export function runtimeError(line, where, message) {
+    hadRuntimeError = true;
     report(line, where, message);
 }
