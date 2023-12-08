@@ -24,6 +24,8 @@ function isEqual(v1, v2) {
 }
 
 const visitor = {
+    //EXPRESSIONS
+
     visitLiteralExpr: (expr) => expr.value,
     visitGroupingExpr: (expr) => evaluate(expr.expression),
     visitUnaryExpr: (expr) => {
@@ -84,6 +86,18 @@ const visitor = {
         let right = evaluate(expr.right);
 
         return isTruthy(left) ? middle : right;
+    },
+
+    //STATEMENTS
+    visitExpressionStmt: (stmt) => {
+        return evaluate(stmt.expression);
+    },
+
+    visitPrintStmt: (stmt) => {
+        let value = evaluate(stmt.expression);
+        if (value == null) value = 'nil';
+        console.log(value);
+        return 'nil';
     }
 };
 
@@ -95,12 +109,15 @@ function evaluate(expr) {
     return expr.accept(visitor);
 }
 
-export default function interpret(expression) {
+export default function interpret(statements) {
     try {
-        let value = evaluate(expression);
-        if (value == null) return 'nil';
-        return value.toString();
-    } catch (_) {
+        let returnValue;
+        for (let statement of statements) {
+            returnValue = statement.accept(visitor);
+        }
+        return returnValue;
+    } catch (poop) {
+        console.log(poop);
         return null;
     }
 }

@@ -51,7 +51,8 @@ async function repl() {
                 process.exit(0);
                 break;
             default:
-                run(line);
+                let finalVal = run(line);
+                if (!hadError && !hadRuntimeError) console.log(finalVal);
                 break;
         }
         hadError = false;
@@ -61,19 +62,12 @@ async function repl() {
 }
 
 function run(source) {
-    console.log('====SCANNER OUTPUT====');
     let tokens = scanTokens(source);
-    for (const token of tokens) {
-        console.log(token.toString());
-    }
-    console.log('====PARSER OUTPUT====');
-    let expression = parse(tokens);
+    let statements = parse(tokens);
     if (hadError) return;
-    console.log(expression);
-    console.log('====INTERPRETER OUTPUT====');
-    let value = interpret(expression);
+    let finalValue = interpret(statements);
     if (hadRuntimeError) return;
-    console.log(value);
+    return finalValue;
 }
 
 function report(line, where, message) {

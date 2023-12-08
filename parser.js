@@ -1,5 +1,6 @@
 import TokenType from "./TokenType.js";
 import * as expr from "./Expr.js";
+import * as stmt from "./Stmt.js";
 import { error } from "./lox.js";
 
 function parseError(token, message) {
@@ -60,6 +61,23 @@ export default function parse(tokens) {
     }
 
     //GRAMMAR RULE IMPLEMENTATIONS
+
+    function statement() {
+        if (match(TokenType.PRINT)) return printStatement();
+        return expressionStatement();
+    }
+
+    function printStatement() {
+        let e = expression();
+        expect(TokenType.SEMICOLON, "Expected ';' after value.");
+        return new stmt.Print(e);
+    }
+
+    function expressionStatement() {
+        let e = expression();
+        expect(TokenType.SEMICOLON, "Expected ';' after expression.");
+        return new stmt.Expression(e);
+    }
 
     function expression() {
         return ternary();
@@ -157,10 +175,14 @@ export default function parse(tokens) {
         throw parseError(token, token.type == TokenType.EOF ? 'Expected token.' : 'Unexpected token.');
     }
 
-    //PARSE BODY
-    try {
-        return expression();
-    } catch (e) {
-        return null
-    };
+    let statements = [];
+    while (!isAtEnd()) {
+        try {
+            statements.push(statement());
+        } catch (e) {
+            return null;
+        }
+    }
+
+    return statements;
 }

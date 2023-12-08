@@ -8,7 +8,7 @@ if (process.argv.length != 3) {
 
 const outputDir = process.argv[2];
 
-//expression types, format := name: [fields]
+//expression and statement types, format := name: [fields]
 
 const exprTypes = {
     Ternary: ['left', 'middle', 'right'],
@@ -18,7 +18,13 @@ const exprTypes = {
     Unary: ['operator', 'right']
 }
 
+const stmtTypes = {
+    Expression: ['expression'],
+    Print: ['expression'],
+}
+
 writeASTClassFile("Expr", exprTypes);
+writeASTClassFile("Stmt", stmtTypes);
 
 function writeASTClassFile(baseName, types) {
     //generate source string for output file
