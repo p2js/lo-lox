@@ -89,7 +89,19 @@ export default function parse(tokens) {
 
     function statement() {
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
+    }
+
+    function block() {
+        let statements = [];
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.push(declaration());
+        }
+
+        expect(TokenType.RIGHT_BRACE, 'Expected \'}\' after block.');
+        return statements;
     }
 
     function printStatement() {

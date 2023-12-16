@@ -1,3 +1,13 @@
+export class Block {
+    constructor(statements) {
+        this.statements = statements;
+    }
+
+    accept(visitor) {
+        return visitor.visitBlockStmt(this);
+    }
+}
+
 export class Expression {
     constructor(expression) {
         this.expression = expression;

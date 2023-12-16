@@ -21,6 +21,7 @@ const exprTypes = {
 }
 
 const stmtTypes = {
+    Block: ['statements'],
     Expression: ['expression'],
     Print: ['expression'],
     Var: ['name', 'initialiser']

@@ -20,7 +20,28 @@ export default class Interpreter {
         }
     }
 
+    //BLOCKS
+
+    executeBlock(statements, environment) {
+        let previous = this.environment;
+
+        let returnValue;
+
+        try {
+            this.environment = environment;
+            returnValue = this.interpret(statements);
+        } finally {
+            this.environment = previous;
+        }
+
+        return returnValue;
+    }
+
     //STATEMENTS
+
+    visitBlockStmt(stmt) {
+        return this.executeBlock(stmt.statements, new Environment(this.environment));
+    }
 
     visitVarStmt(stmt) {
         let value = null;
