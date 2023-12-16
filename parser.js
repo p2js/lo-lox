@@ -88,9 +88,20 @@ export default function parse(tokens) {
     }
 
     function statement() {
+        if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
+    }
+
+    function ifStatement() {
+        expect(TokenType.LEFT_PAREN, 'Expected \'(\' after \'if\' keyword.');
+        let condition = expression();
+        expect(TokenType.RIGHT_PAREN, 'Expected \')\' after if condition.');
+        let thenBranch = statement();
+        let elseBranch = match(TokenType.ELSE) ? statement() : null;
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     function block() {
@@ -138,7 +149,7 @@ export default function parse(tokens) {
     }
 
     function ternary() {
-        let left = equality();
+        let left = or();
 
         if (match(TokenType.QMARK)) {
             let middle = ternary();
@@ -146,6 +157,30 @@ export default function parse(tokens) {
             let right = ternary();
 
             left = new Expr.Ternary(left, middle, right);
+        }
+
+        return left;
+    }
+
+    function or() {
+        let left = and();
+
+        while (match(TokenType.OR)) {
+            let operator = previous();
+            let right = and();
+            left = new Expr.Logical(left, operator, right);
+        }
+
+        return left;
+    }
+
+    function and() {
+        let left = equality();
+
+        while (match(TokenType.AND)) {
+            let operator = previous();
+            let right = equality();
+            left = new Expr.Logical(left, operator, right);
         }
 
         return left;

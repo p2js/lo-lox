@@ -18,6 +18,18 @@ export class Expression {
     }
 }
 
+export class If {
+    constructor(condition, thenBranch, elseBranch) {
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseBranch = elseBranch;
+    }
+
+    accept(visitor) {
+        return visitor.visitIfStmt(this);
+    }
+}
+
 export class Print {
     constructor(expression) {
         this.expression = expression;

@@ -50,6 +50,16 @@ export default class Interpreter {
         return null;
     }
 
+    visitIfStmt(stmt) {
+        if (isTruthy(this.evaluate(stmt.condition))) {
+            return stmt.thenBranch.accept(this);
+        } else if (this.elseBranch != null) {
+            return stmt.elseBranch.accept(this);
+        } else {
+            return null;
+        }
+    }
+
     visitExpressionStmt(stmt) {
         return this.evaluate(stmt.expression);
     }
@@ -137,6 +147,22 @@ export default class Interpreter {
                 throw error(expr.operator, 'Operands must be of type number or string');
             }
         }
+
+        //unreachable 
+        return null;
+    }
+
+    visitLogicalExpr(expr) {
+        let left = this.evaluate(expr.left);
+        switch (expr.operator.type) {
+            case TokenType.OR:
+                if (isTruthy(left)) return left;
+                break;
+            case TokenType.AND:
+                if (!isTruthy(left)) return left;
+                break;
+        }
+        return this.evaluate(expr.right);
     }
 
     visitTernaryExpr(expr) {

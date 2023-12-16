@@ -13,6 +13,7 @@ const outputDir = process.argv[2];
 const exprTypes = {
     Assign: ['name', 'value'],
     Ternary: ['left', 'middle', 'right'],
+    Logical: ['left', 'operator', 'right'],
     Binary: ['left', 'operator', 'right'],
     Grouping: ['expression'],
     Literal: ['value'],
@@ -23,6 +24,7 @@ const exprTypes = {
 const stmtTypes = {
     Block: ['statements'],
     Expression: ['expression'],
+    If: ['condition', 'thenBranch', 'elseBranch'],
     Print: ['expression'],
     Var: ['name', 'initialiser']
 }
