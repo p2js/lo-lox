@@ -112,13 +112,14 @@ export default function parse(tokens) {
         let expr = ternary();
 
         if (match(TokenType.EQUAL)) {
+            let equalsToken = previous();
             let value = assignment();
 
             if (expr instanceof Expr.Variable) {
                 return new Expr.Assign(expr.name, value);
             }
 
-            parseError(previous(), 'Invalid assignment target.');
+            parseError(equalsToken, 'Invalid assignment target.');
         }
 
         return expr;
