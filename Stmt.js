@@ -18,3 +18,14 @@ export class Print {
     }
 }
 
+export class Var {
+    constructor(name, initialiser) {
+        this.name = name;
+        this.initialiser = initialiser;
+    }
+
+    accept(visitor) {
+        return visitor.visitVarStmt(this);
+    }
+}
+

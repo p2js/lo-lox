@@ -1,35 +1,65 @@
 import TokenType from './TokenType.js';
 import { runtimeError } from './lox.js';
+import Environment from './Environment.js';
 
-function isTruthy(val) {
-    if (val == null) return false;
-    if (typeof val == 'boolean') return val;
-    return true;
-}
-
-function checkNumberOperands(operator, ...vals) {
-    for (let val of vals) {
-        if (typeof val != 'number') throw error(operator, 'Operand(s) must be of type number');
+export default class Interpreter {
+    constructor() {
+        this.environment = new Environment();
     }
-    return;
-}
 
-//in lox, NaN == NaN is true so we have to hack in this logic for equality
-function isActuallyNaN(val) {
-    return ((typeof val == 'number') && isNaN(val));
-}
-function isEqual(v1, v2) {
-    if (isActuallyNaN(v1) && isActuallyNaN(v2)) return true;
-    return ((typeof v1 == typeof v2) && (v1 == v2));
-}
+    interpret(statements) {
+        try {
+            let returnValue;
+            for (let statement of statements) {
+                returnValue = statement.accept(this);
+            }
+            return returnValue;
+        } catch (ce) {
+            console.log('catastrophic error: ' + ce);
+            return null;
+        }
+    }
 
-const visitor = {
+    //STATEMENTS
+
+    visitVarStmt(stmt) {
+        let value = null;
+        if (stmt.initialiser) value = this.evaluate(stmt.initialiser);
+        this.environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    visitExpressionStmt(stmt) {
+        return this.evaluate(stmt.expression);
+    }
+
+    visitPrintStmt(stmt) {
+        let value = this.evaluate(stmt.expression);
+        if (value == null) value = 'nil';
+        console.log(value);
+        return null;
+    }
+
     //EXPRESSIONS
 
-    visitLiteralExpr: (expr) => expr.value,
-    visitGroupingExpr: (expr) => evaluate(expr.expression),
-    visitUnaryExpr: (expr) => {
-        let right = evaluate(expr.right);
+    evaluate(expr) {
+        return expr.accept(this);
+    }
+
+    visitVariableExpr(expr) {
+        return this.environment.get(expr.name);
+    }
+
+    visitLiteralExpr(expr) {
+        return expr.value;
+    }
+
+    visitGroupingExpr(expr) {
+        return this.evaluate(expr.expression);
+    }
+
+    visitUnaryExpr(expr) {
+        let right = this.evaluate(expr.right);
 
         switch (expr.operator.type) {
             case TokenType.BANG:
@@ -40,10 +70,11 @@ const visitor = {
 
         //unreachable
         return null;
-    },
-    visitBinaryExpr: (expr) => {
-        let left = evaluate(expr.left);
-        let right = evaluate(expr.right);
+    }
+
+    visitBinaryExpr(expr) {
+        let left = this.evaluate(expr.left);
+        let right = this.evaluate(expr.right);
 
         switch (expr.operator.type) {
             case TokenType.EQUAL_EQUAL:
@@ -79,45 +110,41 @@ const visitor = {
                 throw error(expr.operator, 'Operands must be of type number or string');
             }
         }
-    },
-    visitTernaryExpr: (expr) => {
-        let left = evaluate(expr.left);
-        let middle = evaluate(expr.middle);
-        let right = evaluate(expr.right);
+    }
+
+    visitTernaryExpr(expr) {
+        let left = this.evaluate(expr.left);
+        let middle = this.evaluate(expr.middle);
+        let right = this.evaluate(expr.right);
 
         return isTruthy(left) ? middle : right;
-    },
-
-    //STATEMENTS
-    visitExpressionStmt: (stmt) => {
-        return evaluate(stmt.expression);
-    },
-
-    visitPrintStmt: (stmt) => {
-        let value = evaluate(stmt.expression);
-        if (value == null) value = 'nil';
-        console.log(value);
-        return 'nil';
     }
-};
+}
+
+//helper fns
+
+function isTruthy(val) {
+    if (val == null) return false;
+    if (typeof val == 'boolean') return val;
+    return true;
+}
+
+function checkNumberOperands(operator, ...vals) {
+    for (let val of vals) {
+        if (typeof val != 'number') throw error(operator, 'Operand(s) must be of type number');
+    }
+    return;
+}
+
+//in lox, NaN == NaN is true so we have to hack in this logic for equality
+function isActuallyNaN(val) {
+    return ((typeof val == 'number') && isNaN(val));
+}
+function isEqual(v1, v2) {
+    if (isActuallyNaN(v1) && isActuallyNaN(v2)) return true;
+    return ((typeof v1 == typeof v2) && (v1 == v2));
+}
 
 function error(operator, message) {
     runtimeError(operator.line, ' at ' + operator.lexeme, message);
-}
-
-function evaluate(expr) {
-    return expr.accept(visitor);
-}
-
-export default function interpret(statements) {
-    try {
-        let returnValue;
-        for (let statement of statements) {
-            returnValue = statement.accept(visitor);
-        }
-        return returnValue;
-    } catch (poop) {
-        console.log(poop);
-        return null;
-    }
 }

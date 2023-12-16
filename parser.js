@@ -1,7 +1,7 @@
-import TokenType from "./TokenType.js";
-import * as expr from "./Expr.js";
-import * as stmt from "./Stmt.js";
-import { error } from "./lox.js";
+import TokenType from './TokenType.js';
+import * as expr from './Expr.js';
+import * as stmt from './Stmt.js';
+import { error } from './lox.js';
 
 function parseError(token, message) {
     let where = token.type == TokenType.EOF ? ' at end' : ` at '${token.lexeme}'`;
@@ -62,6 +62,25 @@ export default function parse(tokens) {
 
     //GRAMMAR RULE IMPLEMENTATIONS
 
+    function declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+            return statement();
+        } catch (_) {
+            synchronise();
+            return null;
+        }
+    }
+
+    function varDeclaration() {
+        let name = expect(TokenType.IDENTIFIER, 'Expected identifier.');
+        let initialiser = null;
+        if (match(TokenType.EQUAL)) initialiser = expression();
+
+        expect(TokenType.SEMICOLON, 'Expected \';\' after variable declaration.')
+        return new stmt.Var(name, initialiser);
+    }
+
     function statement() {
         if (match(TokenType.PRINT)) return printStatement();
         return expressionStatement();
@@ -69,13 +88,13 @@ export default function parse(tokens) {
 
     function printStatement() {
         let e = expression();
-        expect(TokenType.SEMICOLON, "Expected ';' after value.");
+        expect(TokenType.SEMICOLON, 'Expected \';\' after value.');
         return new stmt.Print(e);
     }
 
     function expressionStatement() {
         let e = expression();
-        expect(TokenType.SEMICOLON, "Expected ';' after expression.");
+        expect(TokenType.SEMICOLON, 'Expected \';\' after expression.');
         return new stmt.Expression(e);
     }
 
@@ -87,9 +106,9 @@ export default function parse(tokens) {
         let left = equality();
 
         if (match(TokenType.QMARK)) {
-            let middle = equality();
-            expect(TokenType.COLON, "Unterminated ternary expression.");
-            let right = expression();
+            let middle = ternary();
+            expect(TokenType.COLON, 'Unterminated ternary expression.');
+            let right = ternary();
 
             left = new expr.Ternary(left, middle, right);
         }
@@ -164,6 +183,10 @@ export default function parse(tokens) {
             return new expr.Literal(previous().literal);
         }
 
+        if (match(TokenType.IDENTIFIER)) {
+            return new expr.Variable(previous());
+        }
+
         if (match(TokenType.LEFT_PAREN)) {
             let e = expression();
             expect(TokenType.RIGHT_PAREN, 'Expected \')\' after expression.')
@@ -177,11 +200,7 @@ export default function parse(tokens) {
 
     let statements = [];
     while (!isAtEnd()) {
-        try {
-            statements.push(statement());
-        } catch (e) {
-            return null;
-        }
+        statements.push(declaration());
     }
 
     return statements;

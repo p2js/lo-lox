@@ -1,14 +1,16 @@
-   program -> statement* EOF ;
+    program -> declaration* EOF ;
 
- statement -> exprStmt | printStmt ;
-  exprStmt -> expression ";" ;
- printStmt -> "print" expression ";" ;
+declaration -> varDecl | statement ;
+    varDecl -> "var" IDENTIFIER ("=" expression)? ";" ;
+  statement -> exprStmt | printStmt ;
+   exprStmt -> expression ";" ;
+  printStmt -> "print" expression ";" ;
 
-expression -> ternary ;
-   ternary -> equality '?' equality ":" expression ;
-  equality -> comparison ( ( '==' | '!=' ) comparison )* ;
-comparison -> term ( ( "<" | "<=" | ">" | ">=") term )* ;
-      term -> factor ( ( "+" | "-" ) factor )* ;
-    factor -> unary ( ( "*" | "/" ) unary)* ;
-     unary -> ("!" | "-") unary | primary ;
-   primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+ expression -> ternary ;
+    ternary -> equality | equality '?' ternary ":" ternary;
+   equality -> comparison ( ( '==' | '!=' ) comparison )* ;
+ comparison -> term ( ( "<" | "<=" | ">" | ">=") term )* ;
+       term -> factor ( ( "+" | "-" ) factor )* ;
+     factor -> unary ( ( "*" | "/" ) unary)* ;
+      unary -> ("!" | "-") unary | primary ;
+    primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER;

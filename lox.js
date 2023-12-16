@@ -1,6 +1,6 @@
 import scanTokens from './scanner.js';
 import parse from './parser.js';
-import interpret from './interpreter.js';
+import Interpreter from './interpreter.js';
 
 import fs from 'fs';
 import readline from 'readline';
@@ -15,6 +15,9 @@ if (args.length > 1) {
     console.log(`Usage: node lox [script]`);
     process.exit(64);
 }
+
+let interpreter = new Interpreter();
+
 if (args.length == 1) {
     runFile(args[0]);
 } else {
@@ -43,21 +46,20 @@ async function repl() {
     for await (const line of rl) {
         //extra command processing
         switch (line) {
-            case "/clear":
+            case '/clear':
                 console.log('\x1bc');
                 break;
-            case "/exit":
-            case "/quit":
+            case '/exit':
+            case '/quit':
                 process.exit(0);
-                break;
             default:
                 let finalVal = run(line);
-                if (!hadError && !hadRuntimeError) console.log(finalVal);
+                if (!hadError && !hadRuntimeError) console.log(finalVal == null ? 'nil' : finalVal);
                 break;
         }
         hadError = false;
         hadRuntimeError = false;
-        process.stdout.write("> ");
+        process.stdout.write('> ');
     }
 }
 
@@ -65,7 +67,7 @@ function run(source) {
     let tokens = scanTokens(source);
     let statements = parse(tokens);
     if (hadError) return;
-    let finalValue = interpret(statements);
+    let finalValue = interpreter.interpret(statements);
     if (hadRuntimeError) return;
     return finalValue;
 }

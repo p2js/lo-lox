@@ -53,3 +53,13 @@ export class Unary {
     }
 }
 
+export class Variable {
+    constructor(name) {
+        this.name = name;
+    }
+
+    accept(visitor) {
+        return visitor.visitVariableExpr(this);
+    }
+}
+

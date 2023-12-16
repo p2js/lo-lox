@@ -15,12 +15,14 @@ const exprTypes = {
     Binary: ['left', 'operator', 'right'],
     Grouping: ['expression'],
     Literal: ['value'],
-    Unary: ['operator', 'right']
+    Unary: ['operator', 'right'],
+    Variable: ['name']
 }
 
 const stmtTypes = {
     Expression: ['expression'],
     Print: ['expression'],
+    Var: ['name', 'initialiser']
 }
 
 writeASTClassFile("Expr", exprTypes);
