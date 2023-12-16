@@ -1,12 +1,12 @@
 import TokenType from './TokenType.js';
-import * as expr from './Expr.js';
-import * as stmt from './Stmt.js';
+import * as Expr from './Expr.js';
+import * as Stmt from './Stmt.js';
 import { error } from './lox.js';
 
 function parseError(token, message) {
     let where = token.type == TokenType.EOF ? ' at end' : ` at '${token.lexeme}'`;
     error(token.line, where, message);
-    throw new Error();
+    return new Error();
 }
 
 export default function parse(tokens) {
@@ -38,7 +38,13 @@ export default function parse(tokens) {
         return false;
     }
     //consume token if given type, else error
-    let expect = (type, message) => check(type) ? advance() : parseError(peek(), message);
+    let expect = (type, message) => {
+        if (check(type)) {
+            return advance();
+        } else {
+            throw parseError(peek(), message);
+        }
+    }
     //syncronise on parse error
     let synchronise = _ => {
         advance();
@@ -78,7 +84,7 @@ export default function parse(tokens) {
         if (match(TokenType.EQUAL)) initialiser = expression();
 
         expect(TokenType.SEMICOLON, 'Expected \';\' after variable declaration.')
-        return new stmt.Var(name, initialiser);
+        return new Stmt.Var(name, initialiser);
     }
 
     function statement() {
@@ -87,19 +93,35 @@ export default function parse(tokens) {
     }
 
     function printStatement() {
-        let e = expression();
+        let expr = expression();
         expect(TokenType.SEMICOLON, 'Expected \';\' after value.');
-        return new stmt.Print(e);
+        return new Stmt.Print(expr);
     }
 
     function expressionStatement() {
-        let e = expression();
+        let expr = expression();
         expect(TokenType.SEMICOLON, 'Expected \';\' after expression.');
-        return new stmt.Expression(e);
+        return new Stmt.Expression(expr);
     }
 
     function expression() {
-        return ternary();
+        return assignment();
+    }
+
+    function assignment() {
+        let expr = ternary();
+
+        if (match(TokenType.EQUAL)) {
+            let value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                return new Expr.Assign(expr.name, value);
+            }
+
+            parseError(previous(), 'Invalid assignment target.');
+        }
+
+        return expr;
     }
 
     function ternary() {
@@ -110,7 +132,7 @@ export default function parse(tokens) {
             expect(TokenType.COLON, 'Unterminated ternary expression.');
             let right = ternary();
 
-            left = new expr.Ternary(left, middle, right);
+            left = new Expr.Ternary(left, middle, right);
         }
 
         return left;
@@ -122,7 +144,7 @@ export default function parse(tokens) {
         while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
             let operator = previous();
             let right = comparison();
-            left = new expr.Binary(left, operator, right);
+            left = new Expr.Binary(left, operator, right);
         }
 
         return left;
@@ -134,7 +156,7 @@ export default function parse(tokens) {
         while (match(TokenType.GREATER, TokenType.LESS, TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL)) {
             let operator = previous();
             let right = term();
-            left = new expr.Binary(left, operator, right);
+            left = new Expr.Binary(left, operator, right);
         }
 
         return left;
@@ -146,7 +168,7 @@ export default function parse(tokens) {
         while (match(TokenType.PLUS, TokenType.MINUS)) {
             let operator = previous();
             let right = factor();
-            left = new expr.Binary(left, operator, right);
+            left = new Expr.Binary(left, operator, right);
         }
 
         return left;
@@ -158,7 +180,7 @@ export default function parse(tokens) {
         while (match(TokenType.STAR, TokenType.SLASH)) {
             let operator = previous();
             let right = unary();
-            left = new expr.Binary(left, operator, right);
+            left = new Expr.Binary(left, operator, right);
         }
 
         return left;
@@ -168,29 +190,29 @@ export default function parse(tokens) {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             let operator = previous();
             let right = unary();
-            return new expr.Unary(operator, right);
+            return new Expr.Unary(operator, right);
         } else {
             return primary();
         }
     }
 
     function primary() {
-        if (match(TokenType.TRUE)) { return new expr.Literal(true); }
-        if (match(TokenType.FALSE)) { return new expr.Literal(false); }
-        if (match(TokenType.NIL)) { return new expr.Literal(null); }
+        if (match(TokenType.TRUE)) { return new Expr.Literal(true); }
+        if (match(TokenType.FALSE)) { return new Expr.Literal(false); }
+        if (match(TokenType.NIL)) { return new Expr.Literal(null); }
 
         if (match(TokenType.NUMBER, TokenType.STRING)) {
-            return new expr.Literal(previous().literal);
+            return new Expr.Literal(previous().literal);
         }
 
         if (match(TokenType.IDENTIFIER)) {
-            return new expr.Variable(previous());
+            return new Expr.Variable(previous());
         }
 
         if (match(TokenType.LEFT_PAREN)) {
-            let e = expression();
+            let expr = expression();
             expect(TokenType.RIGHT_PAREN, 'Expected \')\' after expression.')
-            return new expr.Grouping(e);
+            return new Expr.Grouping(expr);
         }
 
         //unexpected token

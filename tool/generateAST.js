@@ -11,6 +11,7 @@ const outputDir = process.argv[2];
 //expression and statement types, format := name: [fields]
 
 const exprTypes = {
+    Assign: ['name', 'value'],
     Ternary: ['left', 'middle', 'right'],
     Binary: ['left', 'operator', 'right'],
     Grouping: ['expression'],

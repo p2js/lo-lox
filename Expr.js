@@ -1,3 +1,14 @@
+export class Assign {
+    constructor(name, value) {
+        this.name = name;
+        this.value = value;
+    }
+
+    accept(visitor) {
+        return visitor.visitAssignExpr(this);
+    }
+}
+
 export class Ternary {
     constructor(left, middle, right) {
         this.left = left;

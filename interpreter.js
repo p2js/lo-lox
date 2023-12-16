@@ -15,7 +15,7 @@ export default class Interpreter {
             }
             return returnValue;
         } catch (ce) {
-            console.log('catastrophic error: ' + ce);
+            console.log('catastrophic ' + ce);
             return null;
         }
     }
@@ -44,6 +44,12 @@ export default class Interpreter {
 
     evaluate(expr) {
         return expr.accept(this);
+    }
+
+    visitAssignExpr(expr) {
+        let value = this.evaluate(expr.value);
+        this.environment.assign(expr.name, value);
+        return value;
     }
 
     visitVariableExpr(expr) {

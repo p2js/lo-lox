@@ -13,8 +13,15 @@ export default class Environment {
         runtimeError(name.line, ' at ' + name.lexeme, 'Variable not defined.');
     }
 
-
     define(name, value) {
         this.values.set(name, value);
+    }
+
+    assign(name, value) {
+        if (this.values.has(name.lexeme)) {
+            this.values.set(name.lexeme, value);
+        } else {
+            runtimeError(name.line, ' at ' + name.lexeme, 'Variable not defined.');
+        }
     }
 }
