@@ -60,6 +60,14 @@ export default class Interpreter {
         }
     }
 
+    visitWhileStmt(stmt) {
+        let returnValue = null;
+        while (isTruthy(this.evaluate(stmt.condition))) {
+            returnValue = stmt.body.accept(this);
+        }
+        return returnValue;
+    }
+
     visitExpressionStmt(stmt) {
         return this.evaluate(stmt.expression);
     }

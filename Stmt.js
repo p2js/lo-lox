@@ -30,6 +30,17 @@ export class If {
     }
 }
 
+export class While {
+    constructor(condition, body) {
+        this.condition = condition;
+        this.body = body;
+    }
+
+    accept(visitor) {
+        return visitor.visitWhileStmt(this);
+    }
+}
+
 export class Print {
     constructor(expression) {
         this.expression = expression;

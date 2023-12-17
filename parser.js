@@ -89,6 +89,8 @@ export default function parse(tokens) {
 
     function statement() {
         if (match(TokenType.IF)) return ifStatement();
+        if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
@@ -102,6 +104,51 @@ export default function parse(tokens) {
         let elseBranch = match(TokenType.ELSE) ? statement() : null;
 
         return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    function forStatement() {
+        expect(TokenType.LEFT_PAREN, 'Expected \'(\' after \'for\' keyword.');
+        let initialiser;
+        if (match(TokenType.SEMICOLON)) {
+            initialiser = null;
+        } else if (match(TokenType.VAR)) {
+            initialiser = varDeclaration();
+        } else {
+            initialiser = expressionStatement();
+        }
+
+        let condition = null;
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        expect(TokenType.SEMICOLON, 'Expected \';\' after loop condition.')
+
+        let increment = null;
+        if (!check(TokenType.RIGHT_PAREN)) {
+            increment = expression();
+        }
+
+        expect(TokenType.RIGHT_PAREN, 'Expected \')\' after for clause.');
+
+        let body = statement();
+
+        if (increment != null) body = new Stmt.Block([body, new Stmt.Expression(increment)]);
+        if (condition == null) condition = new Expr.Literal(true);
+
+        body = new Stmt.While(condition, body);
+
+        if (initialiser != null) body = new Stmt.Block([initialiser, body]);
+
+        return body;
+    }
+
+    function whileStatement() {
+        expect(TokenType.LEFT_PAREN, 'Expected \'(\' after \'while\' keyword.');
+        let condition = expression();
+        expect(TokenType.RIGHT_PAREN, 'Expected \')\' after while condition.');
+        let body = statement();
+
+        return new Stmt.While(condition, body);
     }
 
     function block() {

@@ -25,6 +25,7 @@ const stmtTypes = {
     Block: ['statements'],
     Expression: ['expression'],
     If: ['condition', 'thenBranch', 'elseBranch'],
+    While: ['condition', 'body'],
     Print: ['expression'],
     Var: ['name', 'initialiser']
 }
