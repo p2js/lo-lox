@@ -54,7 +54,7 @@ async function repl() {
                 process.exit(0);
             default:
                 let finalVal = run(line);
-                if (!hadError && !hadRuntimeError) console.log(finalVal == null ? 'nil' : finalVal);
+                if (!hadError && !hadRuntimeError) console.log(finalVal == null ? 'nil' : finalVal.toString());
                 break;
         }
         hadError = false;

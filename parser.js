@@ -70,6 +70,7 @@ export default function parse(tokens) {
 
     function declaration() {
         try {
+            if (match(TokenType.FUN)) return fn("function");
             if (match(TokenType.VAR)) return varDeclaration();
             return statement();
         } catch (_) {
@@ -92,6 +93,7 @@ export default function parse(tokens) {
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
     }
@@ -151,6 +153,17 @@ export default function parse(tokens) {
         return new Stmt.While(condition, body);
     }
 
+    function returnStatement() {
+        let keyword = previous();
+        let value = null;
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+        expect(TokenType.SEMICOLON, 'Expected \';\' after return value.');
+
+        return new Stmt.Return(keyword, value);
+    }
+
     function block() {
         let statements = [];
 
@@ -172,6 +185,28 @@ export default function parse(tokens) {
         let expr = expression();
         expect(TokenType.SEMICOLON, 'Expected \';\' after expression.');
         return new Stmt.Expression(expr);
+    }
+
+    function fn(kind) {
+        let name = expect(TokenType.IDENTIFIER, `Expected ${kind} name.`);
+        expect(TokenType.LEFT_PAREN, `Expected '(' after ${kind} name.`);
+        let parameters = [];
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.length >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+                parameters.push(
+                    expect(TokenType.IDENTIFIER, "Expected parameter name.")
+                );
+            } while (match(TokenType.COMMA));
+        };
+        expect(TokenType.RIGHT_PAREN, 'Expected \')\' after parameter list.');
+
+        expect(TokenType.LEFT_BRACE, `Expected '{' before ${kind} body.`);
+        let body = block();
+
+        return new Stmt.Function(name, parameters, body);
     }
 
     function expression() {
@@ -287,8 +322,39 @@ export default function parse(tokens) {
             let right = unary();
             return new Expr.Unary(operator, right);
         } else {
-            return primary();
+            return call();
         }
+    }
+
+    function call() {
+        let expr = primary();
+
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    function finishCall(callee) {
+        let args = [];
+
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (args.length >= 255) {
+                    parseError(peek(), 'Function called with more than 255 arguments');
+                }
+                args.push(expression());
+            } while (match(TokenType.COMMA));
+        }
+
+        let paren = expect(TokenType.RIGHT_PAREN, 'Expected \')\' after function arguments');
+
+        return new Expr.Call(callee, paren, args);
     }
 
     function primary() {

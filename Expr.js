@@ -45,6 +45,18 @@ export class Binary {
     }
 }
 
+export class Call {
+    constructor(callee, paren, args) {
+        this.callee = callee;
+        this.paren = paren;
+        this.args = args;
+    }
+
+    accept(visitor) {
+        return visitor.visitCallExpr(this);
+    }
+}
+
 export class Grouping {
     constructor(expression) {
         this.expression = expression;

@@ -15,6 +15,7 @@ const exprTypes = {
     Ternary: ['left', 'middle', 'right'],
     Logical: ['left', 'operator', 'right'],
     Binary: ['left', 'operator', 'right'],
+    Call: ['callee', 'paren', 'args'],
     Grouping: ['expression'],
     Literal: ['value'],
     Unary: ['operator', 'right'],
@@ -27,7 +28,9 @@ const stmtTypes = {
     If: ['condition', 'thenBranch', 'elseBranch'],
     While: ['condition', 'body'],
     Print: ['expression'],
-    Var: ['name', 'initialiser']
+    Return: ['keyword', 'value'],
+    Var: ['name', 'initialiser'],
+    Function: ['name', 'params', 'body']
 }
 
 writeASTClassFile("Expr", exprTypes);

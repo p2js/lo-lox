@@ -1,23 +1,29 @@
 import TokenType from './TokenType.js';
 import { runtimeError } from './lox.js';
 import Environment from './Environment.js';
+import { LoxFunction } from './LoxFunction.js';
 
 export default class Interpreter {
     constructor() {
-        this.environment = new Environment();
+        this.globals = new Environment();
+
+        this.globals.define('clock', {
+            arity: 0,
+            call: (interpreter, args) => {
+                return Date.now() / 1000;
+            },
+            toString: () => '<native fn>'
+        });
+
+        this.environment = this.globals;
     }
 
     interpret(statements) {
-        try {
-            let returnValue;
-            for (let statement of statements) {
-                returnValue = statement.accept(this);
-            }
-            return returnValue;
-        } catch (ce) {
-            console.log('catastrophic ' + ce);
-            return null;
+        let returnValue;
+        for (let statement of statements) {
+            returnValue = statement.accept(this);
         }
+        return returnValue;
     }
 
     //BLOCKS
@@ -72,11 +78,24 @@ export default class Interpreter {
         return this.evaluate(stmt.expression);
     }
 
+    visitFunctionStmt(stmt) {
+        let fn = new LoxFunction(stmt);
+        this.environment.define(stmt.name.lexeme, fn);
+        return null;
+    }
+
     visitPrintStmt(stmt) {
         let value = this.evaluate(stmt.expression);
         if (value == null) value = 'nil';
-        console.log(value);
+        console.log(value.toString());
         return null;
+    }
+
+    visitReturnStmt(stmt) {
+        let value = null;
+        if (stmt.value != null) value = this.evaluate(stmt.value)
+
+        throw value;
     }
 
     //EXPRESSIONS
@@ -101,6 +120,21 @@ export default class Interpreter {
 
     visitGroupingExpr(expr) {
         return this.evaluate(expr.expression);
+    }
+
+    visitCallExpr(expr) {
+        let callee = this.evaluate(expr.callee);
+        let args = expr.args.map(arg => this.evaluate(arg));
+
+        if (!callee || (typeof callee.call != 'function')) {
+            throw error(expr.paren, 'Attempted to call a non-callable value');
+        }
+
+        if (args.length != callee.arity) {
+            throw error(expr.paren, `Expected ${callee.arity} arguments but found ${args.length}`)
+        }
+
+        return callee.call(this, args);
     }
 
     visitUnaryExpr(expr) {
