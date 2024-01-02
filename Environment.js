@@ -18,6 +18,11 @@ export default class Environment {
         runtimeError(name.line, ' at ' + name.lexeme, 'Variable not defined.');
     }
 
+    getAt(distance, name) {
+        if (distance == 0) return this.values.get(name);
+        return this.enclosing.getAt(distance - 1, name);
+    }
+
     define(name, value) {
         this.values.set(name, value);
     }
@@ -34,5 +39,10 @@ export default class Environment {
         }
 
         runtimeError(name.line, ' at ' + name.lexeme, 'Variable not defined.');
+    }
+
+    assignAt(distance, name, value) {
+        if (distance == 0) return this.values.set(name.lexeme, value);
+        return this.enclosing.assignAt(distance - 1, name, value);
     }
 }

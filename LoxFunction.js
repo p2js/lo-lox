@@ -1,13 +1,14 @@
 import Environment from "./Environment.js";
 
 export class LoxFunction {
-    constructor(declaration) {
+    constructor(declaration, closure) {
         this.declaration = declaration;
         this.arity = declaration.params.length;
+        this.closure = closure;
     }
 
     call(interpreter, args) {
-        let environment = new Environment(interpreter.globals);
+        let environment = new Environment(this.closure);
         for (let i = 0; i < this.declaration.params.length; i++) {
             environment.define(this.declaration.params[i].lexeme, args[i]);
         }

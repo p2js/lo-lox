@@ -4,6 +4,7 @@ import Interpreter from './interpreter.js';
 
 import fs from 'fs';
 import readline from 'readline';
+import { Resolver } from './resolver.js';
 
 
 let args = process.argv.slice(2);
@@ -66,6 +67,8 @@ async function repl() {
 function run(source) {
     let tokens = scanTokens(source);
     let statements = parse(tokens);
+    if (hadError) return;
+    (new Resolver(interpreter)).resolve(statements);
     if (hadError) return;
     let finalValue = interpreter.interpret(statements);
     if (hadRuntimeError) return;

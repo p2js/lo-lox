@@ -16,6 +16,7 @@ export default class Interpreter {
         });
 
         this.environment = this.globals;
+        this.locals = new Map();
     }
 
     interpret(statements) {
@@ -41,6 +42,21 @@ export default class Interpreter {
         }
 
         return returnValue;
+    }
+
+    //VARIABLES
+
+    resolve(expr, depth) {
+        this.locals.set(expr, depth);
+    }
+
+    lookUpVariable(name, expr) {
+        let distance = this.locals.get(expr);
+        if (distance != null) {
+            return this.environment.getAt(distance, name.lexeme);
+        } else {
+            return this.globals.get(name);
+        }
     }
 
     //STATEMENTS
@@ -79,7 +95,7 @@ export default class Interpreter {
     }
 
     visitFunctionStmt(stmt) {
-        let fn = new LoxFunction(stmt);
+        let fn = new LoxFunction(stmt, this.environment);
         this.environment.define(stmt.name.lexeme, fn);
         return null;
     }
@@ -106,12 +122,17 @@ export default class Interpreter {
 
     visitAssignExpr(expr) {
         let value = this.evaluate(expr.value);
-        this.environment.assign(expr.name, value);
+
+        if (distance != null) {
+            this.environment.assignAt(distance, expr.name, value);
+        } else {
+            this.globals.assign(expr.name, value);
+        }
         return value;
     }
 
     visitVariableExpr(expr) {
-        return this.environment.get(expr.name);
+        return this.lookUpVariable(expr.name, expr);
     }
 
     visitLiteralExpr(expr) {
