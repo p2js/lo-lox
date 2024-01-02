@@ -18,7 +18,7 @@ export class Resolver {
     declare(name) {
         if (this.scopes.length == 0) return;
         let scope = this.scopes[this.scopes.length - 1];
-        if (scope.has(name.lexeme)) error(name.line, 'at ' + name.lexeme, 'Variable already defined');
+        if (scope.has(name.lexeme)) error(name.line, ` at '${name.lexeme}'`, 'Variable already defined');
         scope.set(name.lexeme, false);
     }
 
@@ -104,7 +104,7 @@ export class Resolver {
 
     visitReturnStmt(stmt) {
         if (this.currentFunction == null) {
-            error(stmt.keyword.line, 'at ' + stmt.keyword.lexeme, 'Cannot return from top-level code');
+            error(stmt.keyword.line, ` at '${stmt.keyword.lexeme}'`, 'Cannot return from top-level code');
         }
         if (stmt.value != null) {
             this.resolve(stmt.value);
@@ -121,7 +121,7 @@ export class Resolver {
 
     visitVariableExpr(expr) {
         if ((this.scopes.length != 0) && (this.scopes[this.scopes.length - 1].get(expr.name.lexeme) == false)) {
-            error(expr.name.line, 'at ' + expr.name.lexeme, "Can't read local variable name in its own initialiser");
+            error(expr.name.line, ` at '${expr.name.lexeme}'`, "Can't read local variable name in its own initialiser");
         }
 
         this.resolveLocal(expr, expr.name);

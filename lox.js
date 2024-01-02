@@ -68,7 +68,7 @@ function run(source) {
     let tokens = scanTokens(source);
     let statements = parse(tokens);
     if (hadError) return;
-    (new Resolver(interpreter)).resolve(statements);
+    (new Resolver(interpreter)).resolveStatements(statements);
     if (hadError) return;
     let finalValue = interpreter.interpret(statements);
     if (hadRuntimeError) return;
